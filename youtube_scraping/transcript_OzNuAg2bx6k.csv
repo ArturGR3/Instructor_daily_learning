@@ -1,0 +1,553 @@
+start,duration,text
+0.24,5.76,two days ago open AI released swarm now
+3.439,5.28,what it is is a educational framework
+6.0,5.48,for developers and it's about building
+8.719,4.8,multi-agent workflows what we're going
+11.48,4.159,to do today is we're going to come up to
+13.519,4.161,the code and click on clone and bring it
+15.639,3.881,down to the computer after that we'll
+17.68,3.679,look through some of the documentation
+19.52,4.72,see how it works look at a little bit of
+21.359,4.961,code and finally we're going to go
+24.24,4.279,through the examples so they've got a
+26.32,4.359,bunch of examples available inside the
+28.519,4.24,codebase and we'll test them out on the
+30.679,4.88,system I'm happy Dave please like And
+32.759,5.361,subscribe let's get into it the Swarm
+35.559,4.68,project is focusing on execution and
+38.12,5.08,coordination and it has two different
+40.239,4.721,concepts within it one is called agents
+43.2,3.72,and the other is handoffs and with
+44.96,4.919,agents what we're looking at are
+46.92,5.04,instructions and tools with the handoffs
+49.879,4.36,if we go over to the document related to
+51.96,4.96,this there's a cookbook orchestrating
+54.239,5.361,agents routines and handoffs and it's
+56.92,5.2,defined as an agent that hands off
+59.6,5.16,process accessing to another agent now
+62.12,4.84,the swamp project is essentially an area
+64.76,4.039,to explore patterns the patterns for
+66.96,4.519,lightweight scalable and highly
+68.799,4.921,customizable Design This is not a
+71.479,5.241,replacement for crew AI or other sorts
+73.72,5.36,of Frameworks like that as yet and it's
+76.72,4.84,more about educating developers on how
+79.08,5.44,they can work with large language models
+81.56,4.72,in a workflow and step oriented system
+84.52,3.919,but to get started let's come to the top
+86.28,5.24,here we're going to click on code and in
+88.439,4.96,this case I'm going to use GitHub CLI
+91.52,5.559,and I've just created a folder called
+93.399,8.241,test and we're going to paste in GH repo
+97.079,6.761,clone open AI swarm and let it come down
+101.64,4.0,now the repository with the examples are
+103.84,3.599,on the computer but what we'll do is
+105.64,3.6,we'll come here and we'll click on the
+107.439,3.921,install command and coming back to the
+109.24,4.28,terminal we'll just paste in that
+111.36,5.16,command and make sure it's in now I've
+113.52,4.919,opened up the repository here in vs code
+116.52,4.0,and we should check out a few things if
+118.439,3.801,we open up the Swarm directory you'll
+120.52,3.72,see that there's a little bit of code
+122.24,4.96,going on in the system and we'll check
+124.24,4.48,some of that out later if needed there's
+127.2,4.0,examples and we're definitely going to
+128.72,4.4,be working through here but it's the
+131.2,4.399,assets we start with so if we go and
+133.12,4.119,look at the Swarm diagram you can see
+135.599,4.961,what's the weather in New York and
+137.239,6.201,that's being sent to a triage assistant
+140.56,5.6,and its job is to go well what is the
+143.44,5.2,question coming in and hand it off to
+146.16,6.48,the correct agent in this case it's the
+148.64,6.679,we assistant and says it's 67° in New
+152.64,5.879,York now if we come back and look at the
+155.319,5.081,examples there's already a weather agent
+158.519,4.321,system that we can go and look at if we
+160.4,4.88,look at the read me file it says this
+162.84,4.6,example is a we agent demonstrating
+165.28,4.0,function calling with a single agent so
+167.44,3.439,very similar to what we just now getting
+169.28,4.039,started when you look at this file
+170.879,5.161,there's the import of the agent from
+173.319,4.521,swarm and then there's two functions
+176.04,4.279,going on and we can see that these
+177.84,5.36,functions are being put put into an
+180.319,4.84,array on the functions property of the
+183.2,4.72,agent and we'll look a bit later as to
+185.159,4.64,how this is actually running but let's
+187.92,4.239,have a look at some of the documentation
+189.799,4.761,related so I've put together this image
+192.159,5.121,that shows that it's initiating the
+194.56,4.959,Weber agent and then it's delegating to
+197.28,4.48,the get Weber request and some input
+199.519,4.961,parameters need to come through to that
+201.76,4.64,the location and the time from that it
+204.48,3.959,should be able to retrieve the we data
+206.4,3.399,now this is mock data that comes through
+208.439,4.121,in the system but this is where you
+209.799,4.16,would put call to an API and then after
+212.56,3.879,that it's returned the wether
+213.959,5.441,information and it can then do other
+216.439,5.601,tasks such as sending an email and if
+219.4,4.839,you provide the correct email details
+222.04,4.399,the goal would be that it sends an email
+224.239,4.761,now further into the documentation what
+226.439,4.681,the main starting point is is an agent
+229.0,4.0,and it just has a system prompt or an
+231.12,4.119,instruction called you are a helpful
+233.0,4.48,agent and the only other thing it knows
+235.239,4.56,about is that it's got two functions
+237.48,5.16,that it can delegate responsibility to
+239.799,5.121,the get Weber and the send email so when
+242.64,4.08,we look at those functions we'll see
+244.92,4.72,that the get we is get the current we in
+246.72,5.12,a given location M location must be a
+249.64,5.08,city and that's listed and there's also
+251.84,5.359,a time and this by at the moment when we
+254.72,4.4,look at the functions we default to now
+257.199,3.72,the goal of this is to return some sort
+259.12,3.799,of Json structure that has the
+260.919,5.0,information we need there's also an
+262.919,5.441,additional function going on called send
+265.919,4.641,email with that it takes a recipient
+268.36,4.64,subject and body and we'll see how well
+270.56,4.68,that works so let's work out how we're
+273.0,6.199,going to run this so it's pretty simple
+275.24,6.44,it says here Python 3 run py now what is
+279.199,5.521,that so we're currently looking at code
+281.68,6.32,from the agents py there's also this run
+284.72,6.08,py and it's taking the we agent that
+288.0,4.36,we've just defined right here and
+290.8,4.28,putting it through to something called
+292.36,5.88,run demo Loop so what is that so if we
+295.08,6.76,come down to the Swarm area we have this
+298.24,5.28,file called reple dopy and within that
+301.84,5.12,we've got the ability to process and
+303.52,6.28,print the streaming responses we can do
+306.96,6.0,pretty messages but the main Loop that's
+309.8,5.399,going on is sitting here so the incoming
+312.96,4.679,agent in this case we agent would come
+315.199,5.961,in through here and it would get passed
+317.639,5.161,in to the client. run in the agent
+321.16,3.96,variable and the agent variable is just
+322.8,4.399,being loaded there so I've got the code
+325.12,4.639,open but we've come into terminal and
+327.199,5.481,what we'll do is we'll CD into the
+329.759,5.801,examples Weber agent folder from there
+332.68,5.28,we should be able to do the Python 3 uh
+335.56,4.88,run.py and see what we get the first
+337.96,6.72,thing it's saying is who is the user and
+340.44,5.96,I say I might just say hi I'm appy Dave
+344.68,4.519,and we'll see what it comes up with
+346.4,7.4,hello appy Dave how can I assist you
+349.199,7.0,today uh what is the temperature can't
+353.8,4.64,spell I think in
+356.199,4.241,Sydney and we'll see what it comes up
+358.44,3.96,with so it's calling a function called
+360.44,6.319,get weather and it says the current
+362.4,6.0,temperature in Sydney is 65° F now when
+366.759,5.241,we look at the code we can see that
+368.4,5.639,that's hardcoded into the system so if
+372.0,4.08,you want this to return a real value you
+374.039,4.44,would go and change this line so that
+376.08,4.88,it's calling some sort of API to get the
+378.479,4.921,current weather for the location and
+380.96,4.679,time but let's move on to the next one
+383.4,4.32,so this is sending an email to a
+385.639,5.4,recipient and there's three parameters
+387.72,5.16,going on who is it to subject and body
+391.039,4.56,let's see how this works now we're back
+392.88,7.52,at the terminal and I'm going to say can
+395.599,7.481,you send email to Davida dave.com and
+400.4,5.48,see what it comes up with it said could
+403.08,6.48,you please provide the subject and body
+405.88,5.719,of the email subject is hot today it's
+409.56,5.32,come back with this message the email
+411.599,5.921,has been sent to David at ave.com with
+414.88,5.159,the subject what is hot and the body
+417.52,4.84,agent workflow Builder is hot day the
+420.039,4.361,agent workflow Builder is a software
+422.36,3.92,application that I'm building in public
+424.4,4.359,moment so I'm demonstrating the code as
+426.28,4.8,it goes and it's basically around
+428.759,3.801,designing agent workflows like the ones
+431.08,3.839,we're working with right now with the
+432.56,4.96,wether agent complete let's close that
+434.919,4.361,down and we'll move on to the triage
+437.52,4.28,agent now if we go and look at the
+439.28,5.639,readme file first we can see this is an
+441.8,5.679,example of a swarm with a triage agent
+444.919,5.601,takes user inputs it can respond
+447.479,5.881,directly or it can triage and send to
+450.52,4.48,other agents like the sales and refund
+453.36,4.399,it says that we can run it from the
+455.0,4.4,command line using Python 3 run if we
+457.759,4.481,look at that we'll see that it's using
+459.4,5.799,that same run demo Loop example we saw
+462.24,5.639,earlier if we go into the code we'll see
+465.199,5.12,that we've got a couple of handoff
+467.879,4.6,functions we've got three different
+470.319,4.44,agents going on some more handoff
+472.479,4.201,functions let's have a look at that
+474.759,4.12,documentation here we've got this
+476.68,5.919,example of the Swarm containing triage
+478.879,5.88,agent will take inputs from the user and
+482.599,4.081,decide what to do including sending it
+484.759,5.321,to the sales and refund so we can see
+486.68,5.4,the triage agent going on here it
+490.08,4.76,understands what the request type is and
+492.08,5.04,will send it to one of these two agents
+494.84,4.079,now from this point the agents have
+497.12,4.4,their own logic that they can do they
+498.919,6.201,can proceed with doing a sale they can
+501.52,5.119,apply uh discounts or do refunds so
+505.12,3.96,there's a bunch of things going on in
+506.639,4.161,here now if we look at it from this
+509.08,4.56,document ation point of view there's the
+510.8,4.919,main agent and the instructions are
+513.64,4.319,determine which agent is best suited to
+515.719,4.44,handle the user's request and transfer
+517.959,5.161,the conversation and who can it transfer
+520.159,6.081,to a handoff function called transfer to
+523.12,4.76,sales and one called transfer to refund
+526.24,4.12,so after that you can see there's a few
+527.88,4.519,functions going on here and some of them
+530.36,4.28,return messages like this a message
+532.399,4.961,indicating success of the refund another
+534.64,5.36,one message indicating that the discount
+537.36,4.52,was applied but some of the others will
+540.0,4.0,just send information back to a
+541.88,4.8,different agent so this one just comes
+544.0,5.6,back to itself or we can send it off to
+546.68,5.12,the sales agent or the refunds agent so
+549.6,4.52,when we look at the sales agent it's got
+551.8,4.96,a main system instruction called be
+554.12,4.839,super enthusiastic about selling bees
+556.76,4.68,now if it can't handle the question
+558.959,5.0,coming in its only job is to go back to
+561.44,5.56,the triage agent a bit further on we've
+563.959,5.241,got the refunds agent and the main
+567.0,4.48,instruction for the refund agent is help
+569.2,5.36,the user with a refund if the reason was
+571.48,5.88,too expensive offer the user a re refund
+574.56,4.92,code if they insist then process the
+577.36,4.52,refund we've got two different handoff
+579.48,5.56,functions going on processing and
+581.88,5.199,applying discounts and otherwise let's
+585.04,3.64,go back to the triage with this one as
+587.079,4.0,well let's go and have a look at a bit
+588.68,3.96,of code we've got a couple of functions
+591.079,4.401,going on here we'll come back to them in
+592.64,5.8,a moment because the next area is there
+595.48,5.96,are three agents being defined now the
+598.44,5.92,first agent with a name and instructions
+601.44,5.639,is going to control the whole process
+604.36,4.44,from that it has a sales agent we can
+607.079,4.641,work with and one of the things that the
+608.8,5.599,refunds agent can do is delegate
+611.72,5.28,responsibility to handoffs so we got the
+614.399,4.761,process refund and the applied discount
+617.0,4.92,and we can see that information going on
+619.16,5.96,here now if we come back to the sales
+621.92,5.12,agent and we go be super enthusiastic
+625.12,3.159,about selling bees and I think that
+627.04,3.6,might be the first thing that we can
+628.279,5.0,just play around with and change before
+630.64,6.24,we run the AG what we'll do is change
+633.279,5.521,bees to we're selling agent workflow
+636.88,4.04,Builder this is the application that I'm
+638.8,4.8,building in public around designing
+640.92,4.88,these sorts of workflows now the next
+643.6,5.08,thing we've got is help the users with a
+645.8,6.12,refund if the reason is that it's too
+648.68,5.64,expensive offer the user a refund code
+651.92,5.52,well why don't we change that to a
+654.32,5.68,discount code we'll call it AWB Early
+657.44,4.959,Access after that we've got a couple
+660.0,4.639,more handoff functions that we can call
+662.399,4.961,and they're being linked up to the
+664.639,4.64,triage agent right here now after that
+667.36,3.8,we've got a final set of handoff
+669.279,4.481,functions so if we think of the first
+671.16,5.32,two handoff functions as being used by
+673.76,5.28,the refunds agent here then what these
+676.48,5.24,ones offer is the transfer back to
+679.04,5.16,triage is available to both the sales
+681.72,5.2,and refund agent whereas the triage
+684.2,5.8,agent can send things to either the
+686.92,5.32,sales or the refunds agent so I've just
+690.0,3.92,come down to terminal we're in swarm I
+692.24,3.599,think I'm just going to paste in agent
+693.92,4.159,workflow Builder see what it comes up
+695.839,4.041,with it says it looks like you're
+698.079,4.961,interested in building a workflow for
+699.88,7.519,agents that's exactly true I might just
+703.04,7.12,say can I get a discount that would be
+707.399,4.44,great so it's thinking at the moment it
+710.16,4.44,says could you please let me know the
+711.839,6.961,reason you're looking for a discount uh
+714.6,9.359,I can offer you a discount code of AWB
+718.8,11.76,early access that sounds good I want the
+723.959,9.12,AWB Early Access can you apply it I've
+730.56,5.959,successfully applied the discount using
+733.079,6.88,the code AWB Early Access it's added to
+736.519,10.241,your cart saving you $100 so let's see
+739.959,9.44,if we can buy it and I would like to buy
+746.76,5.079,awbb and it says great choice the
+749.399,5.401,purchase of agent workflow Builder you
+751.839,7.521,can proceed to the cart with the
+754.8,6.52,discount already applied by it I wonder
+759.36,4.279,whether this is actually going to work
+761.32,4.56,so it says it looks like you're ready to
+763.639,5.721,make a purchase I'll transfer you back
+765.88,7.44,to our triage agent so we'll assume it's
+769.36,7.039,uh done what I'll say is I have bought
+773.32,5.0,when will you ship and it's just come
+776.399,3.88,back with for inquiries related to
+778.32,5.12,shipping and Order delivery let me
+780.279,4.8,transfer you to our sales consultant so
+783.44,3.88,I think we'll go into a bit of a loop if
+785.079,4.641,we keep doing this but that's the tree
+787.32,4.319,arge and we've had multiple agents
+789.72,4.479,working together we've been able to go
+791.639,5.241,back to the master agent we've been able
+794.199,5.08,to go back to the triage agent we've
+796.88,5.079,been able to go from the refund agent to
+799.279,5.281,the sales agent and this is a pretty
+801.959,4.24,interesting workflow so let's go back to
+804.56,5.32,the code and see what we just went
+806.199,5.481,through we came in using the tri agent
+809.88,4.319,and from that I asked for a discount so
+811.68,4.719,that took us over to the discount agent
+814.199,4.601,that I've put here we saw both of those
+816.399,4.88,function handoffs called so we got the
+818.8,5.36,process discount the apply discount and
+821.279,5.321,you can see it said discounting item
+824.16,4.479,because and it had some sort of reason
+826.6,4.76,and then it said applying a discount it
+828.639,4.721,said applied $100 to your card now at
+831.36,3.839,that point I also had a couple of issues
+833.36,3.919,getting back to the sales agent and when
+835.199,4.76,I came back and looked at the code it
+837.279,4.721,made complete sense why it happened and
+839.959,4.761,the reason for that is that the discount
+842.0,5.56,agent currently has three areas it can
+844.72,5.119,go to it can process a discount it can
+847.56,5.199,apply a discount the only other area it
+849.839,4.601,can do down here is go back to triage so
+852.759,3.721,the next step would have been to go back
+854.44,4.72,to the operator the triage and from
+856.48,4.799,there move on to the sales so all up
+859.16,4.919,this is an incredible little workflow
+861.279,5.0,and really quite simple so we' finished
+864.079,5.361,the Weber bot that was fairly simple
+866.279,5.081,we've moved on and done the triage s and
+869.44,5.28,refund bot that's a little bit more
+871.36,5.719,complex let's see what's next so if we
+874.72,4.679,minimize this file and we go over to the
+877.079,4.0,support bot we can see that there's a
+879.399,3.961,fair bit more going on there's a
+881.079,4.481,requirements text going on we've got a
+883.36,5.2,Docker container looks like we've got a
+885.56,5.079,bunch of articles in the form of Json
+888.56,4.12,documents now what I want to do is see
+890.639,4.32,if I can get this up and running so
+892.68,5.2,we've got the user interface agent and
+894.959,4.601,The Help Center agent and there's a
+897.88,4.199,bunch of things that we got got to do
+899.56,5.48,I've already run the making so let's
+902.079,5.32,just get Docker composer up we'll start
+905.04,5.039,that it's running so we come over to
+907.399,5.44,prep data we've got some imports we've
+910.079,5.361,got an embedding model we're querying
+912.839,5.12,through articles that's the Jason
+915.44,4.04,documents and we're running and
+917.959,4.0,embedding this against them so we're
+919.48,7.24,getting the vector data from this and
+921.959,7.521,storing it into QD rant client and what
+926.72,4.84,else have we got going on here
+929.48,5.0,if the collection exists delete it
+931.56,6.32,otherwise create the collection and then
+934.48,5.24,upsert the data let's see if this works
+937.88,4.6,so I ran this a couple times and I got a
+939.72,5.16,few errors but one of the things I tried
+942.48,5.599,was just trying to hit the collections
+944.88,5.319,here I believe the data is in so let's
+948.079,4.2,just see if I can get this working so
+950.199,4.241,we'll come over to our documentation and
+952.279,4.721,we've got this new concept called the
+954.44,4.56,support bot this is an example of a
+957.0,4.56,customer service bot which includes a
+959.0,5.959,user interface agent and a help center
+961.56,5.56,agent so they're represented here help
+964.959,5.721,center agent can query documents submit
+967.12,5.48,a ticket send an email and transfer to
+970.68,4.079,The Help Center agent which is itself
+972.6,4.039,I'm assuming so there must be other sub
+974.759,3.76,agents going on here and then we got the
+976.639,5.44,support agent also querying dots
+978.519,6.521,submitting tickets and sending an email
+982.079,5.041,so the idea of the support agent is to
+985.04,4.719,handle interactions with the user called
+987.12,5.399,for General uh support issues that
+989.759,5.0,aren't handled by other agents can query
+992.519,5.161,the documentation submit a ticket and
+994.759,5.32,send an email if we move on down to the
+997.68,5.04,Health Center agent we got this deals
+1000.079,5.841,with questions about open AI agents such
+1002.72,6.64,as GPT models dully and Whisper so we'll
+1005.92,6.0,ask questions of that later so let's
+1009.36,4.599,give it a work so I think we'll use it
+1011.92,4.599,before looking at the code this time I'm
+1013.959,4.44,just going to say I'm David and see what
+1016.519,4.921,it comes up with could you please
+1018.399,7.4,provide more context or specify a query
+1021.44,10.879,related to David well I would um like to
+1025.799,9.16,know the time in Chang my Thailand which
+1032.319,3.52,is currently where I'm living so Chang
+1034.959,4.0,my
+1035.839,5.921,Thailand and hopefully that uses a
+1038.959,5.761,general sort of Bot the local time in
+1041.76,6.0,changai Thailand is current 7 hours
+1044.72,6.04,ahead of coordinated universal time or
+1047.76,6.44,UTC please check your local time to add
+1050.76,4.88,time differences well that's great can I
+1054.2,7.4,ask
+1055.64,8.159,questions about chat GPT or open AI it
+1061.6,8.88,should have documents related to them
+1063.799,9.521,how do I write a prompt for DOL 3 it
+1070.48,5.36,says creating a prompt for doly 3 the AI
+1073.32,6.04,model designed to generate images from
+1075.84,6.68,test descriptions involves clear clear
+1079.36,5.439,and descriptive help so we've got B
+1082.52,8.6,specific clear language include style
+1084.799,8.76,and medium Etc okay how do I make an API
+1091.12,6.88,call to the
+1093.559,6.201,completions API for chat and we've had a
+1098.0,3.919,whole lot of information come through
+1099.76,5.6,set up your environment pip install
+1101.919,6.361,requests obtain an API call write your
+1105.36,4.72,API calls now what are we working with
+1108.28,5.36,we're working with the user interface
+1110.08,5.599,agent in this case so I'm not sure
+1113.64,3.919,whether a second agent has come into
+1115.679,3.961,play I reckon we should have a look at
+1117.559,5.801,the code now so I've come over to the
+1119.64,7.6,main Pi file here we've got query the
+1123.36,5.36,vector store we've got query docs and
+1127.24,4.52,then we've got a couple of handoff
+1128.72,5.64,functions send email submit ticket and
+1131.76,4.84,transfer to The Help Center then the
+1134.36,4.92,user interface agent which was where I
+1136.6,5.0,was at so that wasn't doing anything
+1139.28,4.759,to communicate with the database from
+1141.6,4.84,what I can tell and if we look at the
+1144.039,5.361,help center agent which is where we need
+1146.44,5.719,to be this is where we can query docs
+1149.4,4.72,submit a ticket or send an email maybe
+1152.159,4.321,let's try and get to The Help Center
+1154.12,6.28,agent we're back at our chat client so
+1156.48,5.12,we'll say transfer me to The Help Center
+1160.4,4.279,I don't know whether I need the word
+1161.6,4.92,agent I probably shouldn't need it and
+1164.679,4.721,let's see if that changes so now we're
+1166.52,5.08,on a help center agent seem that
+1169.4,4.48,transfer function is not available at
+1171.6,7.559,the current stage however I can assist
+1173.88,10.88,you with issues directly Can I submit a
+1179.159,7.64,ticket around errors with Vector store
+1184.76,4.039,which was what I was dealing with
+1186.799,4.281,earlier so the main thing I'm trying to
+1188.799,4.561,do is see whether the submission ticket
+1191.08,6.12,system works says your ticket regarding
+1193.36,6.12,errors has been successfully entered um
+1197.2,3.4,can I search
+1199.48,5.439,for
+1200.6,8.84,articles on open ai will'll go with the
+1204.919,6.361,voice API see what it says searching for
+1209.44,4.719,knowledge
+1211.28,4.84,retrieving so it looks like it worked if
+1214.159,3.961,we just grab this searching knowledge
+1216.12,4.76,base for query and we do a search in
+1218.12,5.2,here we can see it popping up open AI
+1220.88,7.039,voice API and it's come up with some
+1223.32,7.44,information let's just go back to main
+1227.919,7.961,agent see what happens we're still with
+1230.76,9.08,the help center agent let's go back to
+1235.88,7.6,user interface agent see if we can go
+1239.84,5.319,back that far and we can't that's okay
+1243.48,4.0,and exit won't do anything I don't
+1245.159,4.64,believe have a great day it gives us a
+1247.48,3.92,message so that's pretty cool so I did
+1249.799,4.041,have a couple of configuration issues
+1251.4,4.72,with the support bot but did get it up
+1253.84,4.16,and running uh things like the personal
+1256.12,5.64,shopper and customer service I didn't
+1258.0,5.919,use but let's have a look at basic and
+1261.76,4.08,we've got these little scripts that you
+1263.919,4.081,can run we'll just move a couple of them
+1265.84,4.64,into Focus so you can see what's going
+1268.0,4.72,on and the last one's called function
+1270.48,4.28,calling believe we can run them all one
+1272.72,3.76,at a time so looking at these
+1274.76,3.96,individually they're just simple scripts
+1276.48,4.72,we got the agent handoff where we've got
+1278.72,5.559,English and Spanish and one of the
+1281.2,7.44,things going on is there's a transfer to
+1284.279,6.4,Spanish being called by the English
+1288.64,4.639,agent so if we come down here and type
+1290.679,6.201,in agent handoff and run it let's see
+1293.279,6.441,what we get that's coming through hola I
+1296.88,5.48,don't know how to say Spanish let's move
+1299.72,5.559,on to the next one so we've got bare
+1302.36,6.199,minimum so let's go Python and we'll
+1305.279,6.321,type in bare minimum and what do we got
+1308.559,5.521,here how can I assist you today so
+1311.6,4.6,that's really all it's saying we can see
+1314.08,4.0,that the function calling is just an
+1316.2,4.2,agent that's helpful and it will
+1318.08,4.4,delegate responsibility to a function
+1320.4,5.68,and the function will just return some
+1322.48,7.4,Json data if we run that the weather in
+1326.08,6.199,New York is currently 67° F this is
+1329.88,5.6,great let's just move into this last one
+1332.279,5.121,called contest variables so we got this
+1335.48,4.36,context variables here and there's two
+1337.4,4.6,key value pairs so let's change one of
+1339.84,4.28,them we'll go name is appid Dave and
+1342.0,5.76,user ID is
+1344.12,5.2,555 and what happens is we've got this
+1347.76,4.68,instructions coming through and
+1349.32,5.479,instructions now is not a stream instead
+1352.44,5.88,it's a function and it's taking in the
+1354.799,6.081,context variables so we can grab the
+1358.32,5.4,user which should be appy Dave you are a
+1360.88,5.72,helpful agent greet the user by name it
+1363.72,4.8,should be appy day and if I'm
+1366.6,4.4,understanding this correctly we're just
+1368.52,4.84,going to run two different responses
+1371.0,4.76,sequentially so the first one should be
+1373.36,4.919,a greeting the next one should be the
+1375.76,5.399,Account Details so let's hit save on
+1378.279,6.081,that we'll come over to here and we'll
+1381.159,5.52,run the context variables script hello
+1384.36,5.76,AB Dave how can I assist you today
+1386.679,6.0,Account Details ABY day 555 so that's
+1390.12,5.52,open ai's lightweight multi-agent
+1392.679,6.641,framework called swarm it's experimental
+1395.64,6.56,"at the moment 4,900 Stars actually let's"
+1399.32,6.359,just refresh that it's already gone to
+1402.2,6.44,"5,100 Stars since I started recording"
+1405.679,5.201,this about two hours ago so the next
+1408.64,5.519,video I'm going to do is hooking up my
+1410.88,5.08,agent workflow Builder into swarm so
+1414.159,4.441,that I can automate the stuff that I
+1415.96,5.76,usually do manually so this is a
+1418.6,4.84,workflow that I'll use very soon to
+1421.72,2.959,publish this video we'll work through
+1423.44,3.479,the script we'll work through the
+1424.679,4.041,thumbnails stuff like I'm happy Dave
+1426.919,5.481,please like And subscribe and I'll see
+1428.72,3.68,you in the next video

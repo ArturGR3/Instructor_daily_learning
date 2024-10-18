@@ -11,13 +11,18 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Generator, Iterable, Tuple, Optional
 import csv
 import json
+import tiktoken
 
 # Constants
 CSV_EXTENSION = '.csv'
 TRANSCRIPT_PREFIX = 'transcript_'
 VIDEO_ID_REGEX = r"v=([a-zA-Z0-9_-]+)"
-GPT_MODEL = "gpt-4o-mini"
-
+GPT_MODEL = "gpt-4o"
+PRICING = {
+    "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},  # per 1K tokens
+    "gpt-4o": {"input": 0.0025, "output": 0.01},  # per 1K tokens
+}
+number_of_topics = 10
 # Load environment variables
 load_dotenv(find_dotenv(usecwd=True))
 
@@ -48,12 +53,17 @@ class TranscriptSegment(BaseModel):
     start: float
     text: str
 
-def get_transcript(source: str) -> Tuple[List[TranscriptSegment], str]:
+def count_tokens(text: str) -> int:
+    """Count the number of tokens in the given text."""
+    encoding = tiktoken.encoding_for_model(GPT_MODEL)
+    return len(encoding.encode(text))
+
+def get_transcript(source: str) -> Tuple[List[TranscriptSegment], str, int]:
     """
     Fetch transcript from YouTube video URL or load from CSV file.
 
     :param source: YouTube video URL or path to a CSV file
-    :return: List of TranscriptSegment objects and video ID
+    :return: List of TranscriptSegment objects, video ID, and token count
     """
     if source.endswith(CSV_EXTENSION):
         with open(source, mode='r', newline='', encoding='utf-8') as file:
@@ -74,20 +84,23 @@ def get_transcript(source: str) -> Tuple[List[TranscriptSegment], str]:
             text=segment['text']
         ) for index, segment in enumerate(data)
     ]
-    return transcript_segments, video_id
+    transcript_text = " ".join(segment.text for segment in transcript_segments)
+    token_count = count_tokens(transcript_text)
+
+    return transcript_segments, video_id, token_count
 
 class Topic(BaseModel):
     """Model for a single topic."""
     topic_id: int = Field(description="The id of the topic")
     title: str = Field(description="A concise title for the topic")
-    summary: str = Field(description="A short summary of the topic")
-    keywords: List[str] = Field(description="Key words or phrases related to this topic")
+    summary: str = Field(description="A short summary of the topic up to 200 words")
+    keywords: List[str] = Field(description="Key words or phrases related to this topic, up to 5 words")
     start_time: float = Field(description="The start time of the topic in seconds")
     end_time: float = Field(description="The end time of the topic in seconds")
 
 class Topics(BaseModel):
     """Model for a list of topics."""
-    topics: List[Topic] = Field(description="The list of topics")
+    topics: List[Topic] = Field(description=f"The list of topics up to {number_of_topics}")
 
 def generate_topics(segments: Iterable[TranscriptSegment]) -> Iterable[Topics]:
     """Generate topics from transcript segments."""
@@ -96,16 +109,20 @@ def generate_topics(segments: Iterable[TranscriptSegment]) -> Iterable[Topics]:
         messages=[
             {
                 "role": "system",
-                "content": """You are an AI assistant that analyzes YouTube video transcripts and identifies the main topics discussed in the video.
-                You are given a sequence of YouTube transcript segments and your job is to return up to 5 main topics discussed in the video. 
-                For each topic, provide a concise title, a short summary, relevant keywords, and the approximate start and end times in seconds.
-                Note that this is a transcript and so there might be spelling errors. Note that and correct any spellings. Use the context to 
-                make sure you're spelling things correctly."""
+                "content": f"""You are an AI assistant that analyzes YouTube video transcripts and identifies the main topics discussed in the video.
+                You are given a sequence of YouTube transcript segments and your job is to return up to {number_of_topics} main topics discussed in the video. 
+                For each topic, provide a concise title, a short summary, relevant keywords, and the approximate start and end times in seconds. 
+                
+                Important guidelines:
+                - Ensure that the topics cover all the content in the transcript.
+                - The topics should not overlap in terms of start and end times.
+                - Read the entire transcript carefully, not just the beginning.
+                - If there are spelling errors in the transcript, correct them in your output using context clues.
+                - Aim for coherent, self-contained topics that capture the main ideas and progression of the video."""
             },
             {
                 "role": "user",
-                "content": f"""Based on the following transcript, identify up to 5 main topics discussed in the video. 
-                For each topic, provide a concise title, a short summary, relevant keywords, and the approximate start and end times in seconds.
+                "content": f"""Identify up to {number_of_topics} main topics from the following transcript:
                 \n\nTranscript: {segments}"""
             }
         ],
@@ -143,7 +160,7 @@ def display_topics(transcript):
                     table.add_row(
                         str(topic.topic_id),
                         topic.title,
-                        summary[:70] + "..." if len(summary) > 70 else summary,
+                        summary[:300] + "..." if len(summary) > 300 else summary,
                         ", ".join(keywords[:5]) + ("..." if len(keywords) > 5 else ""),
                         f"{start_time:.0f}s - {end_time:.0f}s"
                     )
@@ -213,6 +230,24 @@ def answer_question(transcript: List[TranscriptSegment], topics: List[Topic], qu
     
     return None
 
+def estimate_cost(model: str, input_tokens: int, output_tokens: int = 0) -> float:
+    """
+    Estimate the cost of API usage based on the model and token counts.
+    
+    :param model: The GPT model being used
+    :param input_tokens: Number of input tokens
+    :param output_tokens: Number of output tokens (default 0)
+    :return: Estimated cost in USD
+    """
+    if model not in PRICING:
+        raise ValueError(f"Pricing information not available for model: {model}")
+    
+    model_pricing = PRICING[model]
+    input_cost = (input_tokens / 1000) * model_pricing["input"]
+    output_cost = (output_tokens / 1000) * model_pricing["output"]
+    
+    return input_cost + output_cost
+
 def main():
     """Main function to run the YouTube Chat Bot."""
     console.print("[bold]YouTube Chat Bot[/bold]")
@@ -221,10 +256,23 @@ def main():
     
     try:
         with console.status("[bold green]Fetching transcript..."):
-            transcript, video_id = get_transcript(input_value)
+            transcript, video_id, token_count = get_transcript(input_value)
         
         if not transcript:
             raise ValueError("No transcript found")
+        
+        console.print(f"[bold blue]Transcript token count: {token_count}[/bold blue]")
+        
+        # Estimate cost for processing the transcript
+        estimated_cost = estimate_cost(GPT_MODEL, token_count)
+        console.print(f"[bold yellow]Estimated cost for processing transcript: ${estimated_cost:.4f}[/bold yellow]")
+        
+        # Ask user for confirmation
+        proceed = Prompt.ask("Do you want to proceed with processing?", choices=["yes", "no"])
+        
+        if proceed.lower() != "yes":
+            console.print("[bold red]Processing cancelled by user.[/bold red]")
+            return
         
         with console.status("[bold green]Generating topics..."):
             topics = display_topics(transcript)
