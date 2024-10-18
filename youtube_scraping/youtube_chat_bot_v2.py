@@ -2,17 +2,21 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt
+from rich.live import Live
 import re
 import instructor
 import openai
 from dotenv import load_dotenv, find_dotenv
 from pydantic import BaseModel, Field
-from typing import List, Dict, Generator, Iterable, Tuple
+from typing import List, Dict, Generator, Iterable, Tuple, Optional
 import csv
 import json
-from rich.live import Live
-from rich.status import Status
-import time
+
+# Constants
+CSV_EXTENSION = '.csv'
+TRANSCRIPT_PREFIX = 'transcript_'
+VIDEO_ID_REGEX = r"v=([a-zA-Z0-9_-]+)"
+GPT_MODEL = "gpt-4o-mini"
 
 # Load environment variables
 load_dotenv(find_dotenv(usecwd=True))
@@ -22,38 +26,36 @@ client = instructor.from_openai(openai.OpenAI())
 
 console = Console()
 
-def extract_video_id(url: str) -> str | None:
-    match = re.search(r"v=([a-zA-Z0-9_-]+)", url)
-    if match:
-        return match.group(1)
-    return None
+def extract_video_id(url: str) -> Optional[str]:
+    """Extract video ID from YouTube URL."""
+    match = re.search(VIDEO_ID_REGEX, url)
+    return match.group(1) if match else None
 
-def save_transcript_to_csv(video_id: str, transcript: List[Dict[str, any]]):
-    filename = f"transcript_{video_id}.csv"
+def save_transcript_to_csv(video_id: str, transcript: List[Dict[str, any]]) -> None:
+    """Save transcript to CSV file."""
+    filename = f"{TRANSCRIPT_PREFIX}{video_id}{CSV_EXTENSION}"
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = ['start', 'duration', 'text']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        
         writer.writeheader()
         for segment in transcript:
             writer.writerow(segment)
-    
     console.print(f"[bold green]Transcript saved to {filename}[/bold green]")
-    
+
 class TranscriptSegment(BaseModel):
+    """Model for a single transcript segment."""
     source_id: int
     start: float
     text: str
 
-def get_transcript(source: str) -> Tuple[Generator[TranscriptSegment, None, None], str]:
+def get_transcript(source: str) -> Tuple[List[TranscriptSegment], str]:
     """
-    Fetches the transcript from a YouTube video URL or loads it from a CSV file,
-    and yields TranscriptSegment objects.
-    
+    Fetch transcript from YouTube video URL or load from CSV file.
+
     :param source: YouTube video URL or path to a CSV file
-    :yield: TranscriptSegment objects
+    :return: List of TranscriptSegment objects and video ID
     """
-    if source.endswith('.csv'):
+    if source.endswith(CSV_EXTENSION):
         with open(source, mode='r', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             data = list(reader)
@@ -64,16 +66,18 @@ def get_transcript(source: str) -> Tuple[Generator[TranscriptSegment, None, None
             raise ValueError("Invalid YouTube URL")
         data = YouTubeTranscriptApi.get_transcript(video_id)
         save_transcript_to_csv(video_id, data)
-    transcript_segments = []
-    for index, segment in enumerate(data):
-        transcript_segments.append(TranscriptSegment(
+
+    transcript_segments = [
+        TranscriptSegment(
             source_id=index,
             start=float(segment['start']),
             text=segment['text']
-        ))
+        ) for index, segment in enumerate(data)
+    ]
     return transcript_segments, video_id
 
 class Topic(BaseModel):
+    """Model for a single topic."""
     topic_id: int = Field(description="The id of the topic")
     title: str = Field(description="A concise title for the topic")
     summary: str = Field(description="A short summary of the topic")
@@ -82,12 +86,13 @@ class Topic(BaseModel):
     end_time: float = Field(description="The end time of the topic in seconds")
 
 class Topics(BaseModel):
+    """Model for a list of topics."""
     topics: List[Topic] = Field(description="The list of topics")
 
 def generate_topics(segments: Iterable[TranscriptSegment]) -> Iterable[Topics]:
-    
+    """Generate topics from transcript segments."""
     return client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=GPT_MODEL,
         messages=[
             {
                 "role": "system",
@@ -106,14 +111,7 @@ def generate_topics(segments: Iterable[TranscriptSegment]) -> Iterable[Topics]:
         ],
         response_model=instructor.Partial[Topics],
         stream=True
-    )    
-    
-# transcript, video_id = get_transcript('transcript_OzNuAg2bx6k.csv')
-# topics = generate_topics(transcript)
-
-# for partial_topics in topics:
-#     print(json.dumps(partial_topics.model_dump(), indent=4))  
-    
+    )
 
 def display_topics(transcript):
     console = Console()
@@ -166,93 +164,100 @@ def display_topics(transcript):
 # topics_list = display_topics(transcript)
 
 class Answer(BaseModel):
+    """Model for an answer to a user question."""
     question: str = Field(description="The question that the user asked")
     answer: str = Field(description="The answer to the user question")
     start_time: float = Field(description="The start time of the video that you used to answer the question")
     end_time: float = Field(description="The end time of the video that you used to answer the question")
 
-def answer_question(transcript: List[TranscriptSegment], topics: List[Topic], question: str) -> Generator[Answer, None, None]:
+def answer_question(transcript: List[TranscriptSegment], topics: List[Topic], question: str) -> Optional[Answer]:
     """
-    This function uses an LLM to determine which topics are relevant to a given question.
-    It then extracts the relevant parts of the transcript based on the start and end times of the topics.
-    """     
-    # convert dict to markdown topic id, title, summary, keywords, start_time, end_time
+    Answer a user question based on the transcript and topics.
+
+    :param transcript: List of TranscriptSegment objects
+    :param topics: List of Topic objects
+    :param question: User's question
+    :return: Answer object or None if no answer could be generated
+    """
     topics_md = "\n".join([f"Topic id: {topic.topic_id}, Title: {topic.title}, Summary: {topic.summary}, Keywords: {topic.keywords}, Start time: {topic.start_time}, End time: {topic.end_time}" for topic in topics])
     
     answer_generator = client.chat.completions.create_iterable(
-        model="gpt-4o-mini-2024-07-18",
+        model=GPT_MODEL,
         messages=[
             {
                 "role": "system",
-                "content": """You are an AI assistant that uses the youtube video transcript and it main topics to answer user questions.
+                "content": """You are an AI assistant that uses the youtube video transcript and its main topics to answer user questions.
                 Please provide the user question and the answer with the start and end times of the video that you used to answer the question.
                 """
             },
             {
                 "role": "assistant",
-                "content": f"""[Transcript from the video]:\n{transcript}
-                \n[Topics from the transcript]:\n{topics_md}"""
+                "content": f"[Transcript from the video]:\n{transcript}\n[Topics from the transcript]:\n{topics_md}"
             },
             {
                 "role": "user",
-                "content": f"""Please provide the user question and the answer with the start and end times of the video that you used to answer the question.
-                \n[Question]:\n {question}"""
+                "content": f"Please provide the user question and the answer with the start and end times of the video that you used to answer the question.\n[Question]:\n {question}"
             }
         ],
         response_model=Answer,
         stream=True
     )
     
-    # Print the relevant topics numbers, titles and start and end times 
     console.print("[bold green]Answer:[/bold green]")
     for partial_answer in answer_generator:
         console.print(f"[bold green]Question:[/bold green] {partial_answer.question}")
         console.print(f"[bold green]Answer:[/bold green] {partial_answer.answer}")
         console.print(f"[bold green]Start time:[/bold green] {partial_answer.start_time}")
         console.print(f"[bold green]End time:[/bold green] {partial_answer.end_time}")
-        return partial_answer        
-
-# answer = answer_question(transcript, topics_list, "What is the main topic of the video?")
+        return partial_answer
     
+    return None
+
 def main():
-    console = Console()
+    """Main function to run the YouTube Chat Bot."""
     console.print("[bold]YouTube Chat Bot[/bold]")
     
     input_value = Prompt.ask("Enter a CSV filename or YouTube URL")
     
-    with console.status("[bold green]Fetching transcript..."):
-        transcript, video_id = get_transcript(input_value)
+    try:
+        with console.status("[bold green]Fetching transcript..."):
+            transcript, video_id = get_transcript(input_value)
         
-    if not transcript:
-        console.print("[bold red]Invalid input[/bold red]")
-        return
-    
-    with console.status("[bold green]Generating topics...") as status:
-        topics = display_topics(transcript)
-    
-    if not topics:
-        console.print("[bold red]Failed to generate topics[/bold red]")
-        return
-    
-    while True:
-        action = Prompt.ask("What would you like to do?", choices=["question", "exit"])
+        if not transcript:
+            raise ValueError("No transcript found")
         
-        if action == "exit":
-            break
-        elif action == "question":
-            question = Prompt.ask("What's your question about the video?")
-            with console.status("[bold green]Analyzing question and generating answer..."):
-                answer= answer_question(transcript, topics, question)
+        with console.status("[bold green]Generating topics..."):
+            topics = display_topics(transcript)
+        
+        if not topics:
+            raise ValueError("Failed to generate topics")
+        
+        while True:
+            action = Prompt.ask("What would you like to do?", choices=["question", "exit"])
             
-            video_url = f"https://www.youtube.com/watch?v={video_id}&t={int(answer.start_time)}s"
-            console.print(f"\n[bold green]Here's the link to the video at the relevant part:[/bold green]")
-            console.print(f"[link={video_url}]{video_url}[/link]")
+            if action == "exit":
+                break
+            elif action == "question":
+                question = Prompt.ask("What's your question about the video?")
+                with console.status("[bold green]Analyzing question and generating answer..."):
+                    answer = answer_question(transcript, topics, question)
+                
+                if answer:
+                    video_url = f"https://www.youtube.com/watch?v={video_id}&t={int(answer.start_time)}s"
+                    console.print(f"\n[bold green]Here's the link to the video at the relevant part:[/bold green]")
+                    console.print(f"[link={video_url}]{video_url}[/link]")
+                else:
+                    console.print("[bold red]Failed to generate an answer.[/bold red]")
+    
+    except Exception as e:
+        console.print(f"[bold red]An error occurred: {str(e)}[/bold red]")
 
 if __name__ == "__main__":
     main()
 
 
 # transcript_OzNuAg2bx6k.csv
+
 
 
 
