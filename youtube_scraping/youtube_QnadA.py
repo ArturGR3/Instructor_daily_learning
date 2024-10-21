@@ -17,7 +17,7 @@ import tiktoken
 CSV_EXTENSION = '.csv'
 TRANSCRIPT_PREFIX = 'transcript_'
 VIDEO_ID_REGEX = r"v=([a-zA-Z0-9_-]+)"
-GPT_MODEL = "gpt-4o"
+GPT_MODEL = "gpt-4o-mini"
 PRICING = {
     "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},  # per 1K tokens
     "gpt-4o": {"input": 0.0025, "output": 0.01},  # per 1K tokens
@@ -252,7 +252,7 @@ def main():
     """Main function to run the YouTube Chat Bot."""
     console.print("[bold]YouTube Chat Bot[/bold]")
     
-    input_value = Prompt.ask("Enter a CSV filename or YouTube URL")
+    input_value = Prompt.ask("Enter a [bold cyan]CSV filename[/bold cyan] or [bold cyan]YouTube URL[/bold cyan]")
     
     try:
         with console.status("[bold green]Fetching transcript..."):
